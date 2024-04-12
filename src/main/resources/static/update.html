@@ -1,0 +1,107 @@
+<div class="container mt-5">
+    <h2 class="mb-3">Profile update:</h2>
+    <hr>
+    <form action="" method="post" name="profilerefresh" id="profilerefresh" enctype='multipart/form-data' class="needs-validation" novalidate>
+
+        <div class="mb-3">
+            <label for="lastname" class="form-label">Last name:</label>
+            <input type="text" class="form-control input-short" id="lastname" name="lastname" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="firstname" class="form-label">First name:</label>
+            <input type="text" class="form-control input-short" id="firstname" name="firstname" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">E-mail:</label>
+            <input type="email" class="form-control input-short" id="email" name="email" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" class="form-control input-short" id="password" name="password">
+        </div>
+
+        <div class="mb-3">
+            <label for="password_2" class="form-label">Password again:</label>
+            <input type="password" class="form-control input-short" id="password_2" name="password_2">
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+        <span id="feedback" name="feedback"></span>
+    </form>
+    <div id="result" style = "margin-bottom: 2.5rem"></div>
+</div>
+
+<script>
+
+    function getUserData(){
+            $.ajax({
+            type: 'GET',
+            url: '/getUser',
+            data: 'json',
+            success: function(user) {
+                console.log(user);
+                $('#lastname').val(user.lastName);
+                $('#firstname').val(user.firstName);
+                $('#email').val(user.email);
+                $('#result').html('Success getting user data!');
+            },
+            error: function() {
+                $('#result').html('An error occurred.');
+            }
+        });
+    }
+
+        $(document).ready(function() {
+            getUserData();
+        });
+
+
+        $(document).ready(function() {
+            $('#profilerefresh').on('submit', function(e) {
+                e.preventDefault();
+
+                var formData = {
+                    firstName: $('#firstname').val(),
+                    lastName: $('#lastname').val(),
+                    email: $('#email').val(),
+                    password: $('#password').val()
+                };
+
+                console.log(formData);
+                $.ajax({
+                    type: 'PUT',
+                    url: '/update',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        getUserData(1);
+                        $('#result').html(response);
+                    },
+                    error: function(response) {
+
+                            if (response.status === 400) {
+                                var errors = response.responseJSON;
+                                var errorMessages = '<ul>';
+
+
+                                for (var fieldName in errors) {
+                                    // Append each error message to the errorMessages string
+                                    errorMessages += '<li>' + fieldName + ': ' + errors[fieldName] + '</li>';
+                                }
+                                errorMessages += '</ul>';
+                                $('#result').html(errorMessages);
+                            } else {
+
+                                $('#result').html('An unexpected error occurred.');
+                            }
+                    }
+                });
+            });
+        });
+
+</script>

@@ -1,0 +1,179 @@
+<div class="container mt-5">
+  <h2 class="mb-3">Shopping list:</h2>
+  <hr>
+  <div class="container">
+    <table id = "shoppingListTable" name = "shoppingListTable" class="table table-striped table-bordered" style="width:100%">
+      <thead>
+      <tr class="text-center">
+        <th>Item</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th >Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <div class="text-center mb-3">
+    <button id="addItem" class="btn btn-primary">Add Item</button>
+  </div>
+  <hr>
+    <div class="text-right mb-3">
+      <p style="text-align: right; font-size: 24px"><b>Total sum: <span id ="totalSum" ></span></b></p>
+    </div>
+  <hr>
+
+  <div class="text-center mb-3">
+    <button id="refreshList" class="btn btn-primary">Refresh list</button>
+  </div>
+</div>
+<script>
+
+function updateFinalSum() {
+    var totalSum = 0;
+
+
+    $('#shoppingListTable tbody tr').each(function() {
+        var price = parseFloat($(this).find('td:eq(1)').text());
+        var quantity = parseInt($(this).find('td:eq(2)').text(), 10);
+
+        if (!isNaN(price) && !isNaN(quantity)) {
+            totalSum += price * quantity;
+        }
+    });
+
+
+    $('#totalSum').text(totalSum.toFixed(2));
+}
+
+function fetchShoppingList() {
+    $.ajax({
+        type: 'GET',
+        url: '/fetchShoppingList',
+        data: 'json',
+        success: function(items) {
+
+            items.forEach(function(item) {
+                var row = `<tr class="text-center">
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${item.quantity}</td>
+                    <td class="text-center">
+                        <button class="btn btn-warning updateItem"><i class="fas fa-sync"></i></button>
+                        <button class="btn btn-danger deleteItem"><i class="fas fa-times"></i></button>
+                    </td>
+                </tr>`;
+                $('#shoppingListTable tbody').append(row);
+            });
+            updateFinalSum();
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching shopping list:', error);
+        }
+    });
+
+}
+
+
+
+$(document).ready(function() {
+
+    fetchShoppingList();
+
+
+
+    $('#addItem').click(function() {
+        var newRow = `<tr class="text-center">
+            <td><input type="text" class="form-control" name="item"></td>
+            <td><input type="number" class="form-control" name="price" step="0.01"></td>
+            <td><input type="number" class="form-control" name="quantity"></td>
+            <td><button class="btn btn-primary saveItem">Save</button></td>
+        </tr>`;
+
+        $('#shoppingListTable tbody').append(newRow);
+    });
+
+
+    $(document).on('click', '.saveItem', function() {
+        var tr = $(this).closest('tr');
+        var item = tr.find('input[name="item"]').val();
+        var price = parseFloat(tr.find('input[name="price"]').val()).toFixed(2);
+        var quantity = tr.find('input[name="quantity"]').val();
+
+
+        if (item === "" || price === "" || quantity === "") {
+            alert("Please fill all fields before saving.");
+            return; // Stop the function if any field is empty
+        }
+
+
+        console.log(item, price, quantity);
+
+
+        tr.find('td:eq(0)').text(item);
+        tr.find('td:eq(1)').text(price);
+        tr.find('td:eq(2)').text(quantity);
+        tr.find('td:eq(3)').html(`
+            <button class="btn btn-warning updateItem text-center"><i class="fas fa-sync"></i></button>
+            <button class="btn btn-danger deleteItem text-center"><i class="fas fa-times"></i></button>
+        `).addClass('text-center');
+        updateFinalSum();
+
+    });
+
+
+    $(document).on('click', '.deleteItem', function() {
+        $(this).closest('tr').remove();
+    });
+
+
+
+    $(document).on('click', '.updateItem', function() {
+        var tr = $(this).closest('tr');
+        var itemName = tr.find('td:eq(0)').text();
+        var itemPrice = tr.find('td:eq(1)').text();
+        var itemQuantity = tr.find('td:eq(2)').text();
+
+        tr.find('td:eq(0)').html(`<input type="text" class="form-control" name="item" value="${itemName}">`);
+        tr.find('td:eq(1)').html(`<input type="number" class="form-control" name="price" step="0.01" value="${itemPrice}">`);
+        tr.find('td:eq(2)').html(`<input type="number" class="form-control" name="quantity" value="${itemQuantity}">`);
+        tr.find('td:eq(3)').html(`<button class="btn btn-primary saveItem">Save</button>`);
+    });
+
+
+
+    $('#refreshList').click(function() {
+    var items = [];
+
+
+    $('#shoppingListTable tbody tr').each(function() {
+        var item = {
+            name: $(this).find('td:eq(0)').text(),
+            price: parseFloat($(this).find('td:eq(1)').text()),
+            quantity: parseInt($(this).find('td:eq(2)').text(), 10)
+        };
+        items.push(item);
+    });
+
+    console.log(items);
+
+    $.ajax({
+        type: 'POST',
+        url: '/saveShoppingList',
+        contentType: 'application/json',
+        data: JSON.stringify(items),
+        success: function(response) {
+            console.log('List saved successfully!');
+
+        },
+        error: function(xhr, status, error) {
+            console.error('Error saving list:', error);
+
+        }
+    });
+});
+
+});
+
+</script>

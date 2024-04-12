@@ -1,0 +1,31 @@
+
+.input-short {
+    width: 30%;  /*Set width*/
+}
+
+.btn-primary {
+    background-color: #989696 !important; /* New background color */
+    border-color: #989696 !important; /* New border color */
+    margin-bottom: 2.5rem !important
+}
+
+.btn-primary:hover {
+    background-color: #676565 !important; /* Darker shade for hover effect */
+    border-color: #676565 !important; /* Darker border color for hover effect */
+}
+
+.form-check-input {
+    background-color: #989696 !important; /* New background color */
+    border-color: #989696 !important; /* New border color */
+}
+
+/* Right align and increase font size for price and quantity columns
+.price, .quantity {
+    text-align: right;
+}
+
+/* Right align and increase font size for the total sum display
+#totalSum {
+    text-align: right;
+    font-size: 24px;
+}*/
